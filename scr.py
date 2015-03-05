@@ -19,20 +19,16 @@ def main():
     for root,dirs,files in os.walk(repoDir):
         for fileName in files:
             if os.path.splitext(fileName)[1] in resType:
-                fileLocaleName = os.path.splitext(os.path.splitext(fileName)[0])[0]                
                 resFilePath = root + '\\' + fileName
-                if(isENResProcess and ( (fileLocaleName == '' ) or ( fileLocaleName == 'en' and os.path.splitext(fileName)[1] == '.json'))):#EN resource file
-                    print('EN: ' + resFilePath)
-                    copyFileToDst(resFilePath)
+                if(isValidResFile(fileName)):
                     fileCounts = fileCounts + 1
-                elif (fileLocaleName in dstLng):#non-EN resource file
-                    print('non-EN: ' + resFilePath)
                     copyFileToDst(resFilePath)
-                    fileCounts = fileCounts + 1
+                    print(fileName)
 
     #print result
     print( '\ncopied files: ' + str(fileCounts) )
 
+#copy file to dstDir by keeping source directory structure
 def copyFileToDst(filePath):
     basePath = repoDir
     baseFilePath = os.path.relpath(filePath, repoDir)
@@ -42,7 +38,19 @@ def copyFileToDst(filePath):
     if(os.path.exists(dstWithBaseDir)== False):
         os.makedirs(dstWithBaseDir)
     shutil.copyfile(filePath, dstWithBaseFilePath)
-    print(os.path.dirname(baseFilePath))
+    #print(os.path.dirname(baseFilePath))
+
+def isValidResFile(fileName):
+    if(os.path.splitext(fileName)[1]=='.json'):#json file are sth like en.json/es.json
+        if(os.path.splitext(fileName)[0] in dstLng):
+            return True
+    elif(os.path.splitext(fileName)[1]=='.resx'):
+        if(os.path.splitext(os.path.splitext(fileName)[0])[1] in dstLng):#for non-en resource file such as index.es.resx
+            return True
+        elif(os.path.splitext(os.path.splitext(fileName)[0])[1] == ''):#for en resource file such as index.resx
+            return True
+    else:
+        return False
 
 def test():
     filePath = 'E:\\WebApp\\feature-l10n\\app\\_App\\Admin\\locales\\es.json'
